@@ -1,0 +1,12 @@
+# 수업 기준 버전
+mcp==2.3.0
+langgraph==1.2.20
+langchain==1.4.9
+langchain-openai==1.7.4
+python-dotenv==1.2.4
+
+# 웹 화면
+fastapi==0.165.0
+uvicorn==0.54.0
+python-multipart==0.0.34
+httpx==0.28.1
