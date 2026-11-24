@@ -1,0 +1,15 @@
+# 공통
+.env
+.vscode/
+.DS_Store
+.claude/
+
+# Python
+__pycache__/
+.venv/
+venv/
+uploads/
+
+# Node
+node_modules/
+dist/

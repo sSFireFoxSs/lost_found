@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>습득물 등록 | 습득물 공고 표준화 PoC</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+  :root { --blue:#0054a6; --navy:#052b57; --ink:#1e2124; --gray:#f4f5f6; --line:#cdd1d5; --muted:#6d7882; }
+  * { box-sizing:border-box; }
+  html { color-scheme:light; background:#fff; }
+  body { margin:0;font-family:Pretendard, sans-serif; color:var(--ink); font-size:16px; }
+  .wrap { max-width:1200px; margin:0 auto; padding:0 20px; }
+  .masthead { background:#f4f5f6; font-size:13px; padding:6px 0; color:var(--muted); }
+  header { border-bottom:1px solid var(--line); }
+  header .wrap { display:flex; align-items:center; justify-content:space-between; height:72px; }
+  .logo { font-size:22px; font-weight:700; color:var(--navy); }
+  .logo b { color:var(--blue); }
+  nav { border-bottom:1px solid var(--line); }
+  nav .wrap { display:flex; gap:28px; height:52px; align-items:stretch; }
+  nav a { display:flex; align-items:center; font-weight:600; color:var(--ink); text-decoration:none; }
+  nav a.on { color:var(--navy); border-bottom:3px solid var(--navy); }
+  .crumb { font-size:14px; color:var(--muted); margin:24px 0 8px; }
+  h1 { color:var(--navy); font-size:34px; margin:8px 0 28px; }
+  h2 { font-size:24px; margin:40px 0 16px; }
+  .notice { background:#eef2f7; border:1px solid #d6e0eb; border-radius:12px; padding:18px 24px; color:var(--blue); font-size:15px; line-height:1.6; }
+  .box { background:var(--gray); border-radius:12px; padding:24px 32px; margin-top:16px; }
+  .grid { display:grid; grid-template-columns:110px 1fr 110px 1fr; gap:12px 16px; align-items:center; }
+  .grid label { font-weight:700; font-size:15px; }
+  .grid .full { grid-column:2 / 5; }
+  input, textarea { width:100%; font:inherit; font-size:15px; padding:9px 12px; border:1px solid #b1b8be; border-radius:6px; background:#fff; }
+  textarea { min-height:90px; resize:vertical; }
+  .req { color:#de3412; }
+  .hint { font-size:13px; color:var(--muted); margin-top:4px; }
+  .vlm { border:1px dashed #b1b8be; border-radius:6px; padding:10px 12px; background:#fff; color:var(--muted); font-size:14px; }
+  .btns { display:flex; justify-content:center; gap:8px; border-top:1px solid var(--ink); margin-top:20px; padding-top:14px; }
+  button { font:inherit; font-size:15px; padding:9px 18px; border-radius:6px; cursor:pointer; border:1px solid var(--line); background:#fff; }
+  button.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+  button:disabled { opacity:.5; cursor:wait; }
+  .path { display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:14px; }
+  .path span { background:#fff; border:1px solid var(--line); border-radius:20px; padding:4px 12px; }
+  .cols { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-top:16px; }
+  .card { border:1px solid var(--line); border-radius:12px; padding:20px; background:#fff; }
+  .card h3 { margin:0 0 4px; font-size:18px; }
+  .card .sub { font-size:13px; color:var(--muted); margin-bottom:12px; }
+  .card.pub h3 { color:var(--blue); } .card.ver h3 { color:#8a5a00; } .card.pri h3 { color:#a1260d; }
+  dl { display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:0; font-size:15px; }
+  dt { font-weight:700; } dd { margin:0; }
+  .warn { background:#fdefec; color:#a1260d; border-radius:8px; padding:12px 16px; margin-top:12px; font-size:14px; }
+  .list { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; }
+  .item { border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .ph { height:110px; background:#e6e8ea; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:13px; margin-bottom:12px; }
+  .item b { display:block; margin-bottom:8px; }
+  .item small { color:var(--muted); }
+  .empty { color:var(--muted); }
+  footer { background:var(--gray); margin-top:60px; padding:28px 0; font-size:14px; color:var(--muted); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<div class="masthead"><div class="wrap">PoC 데모 화면입니다. 실제 기관 서비스가 아닙니다.</div></div>
+<header><div class="wrap"><div class="logo">습득물 공고 <b>표준화</b></div><span style="color:var(--muted);font-size:14px">담당자용</span></div></header>
+<nav><div class="wrap"><a class="on" href="#">습득물 등록</a><a href="#posted">등록된 공고</a></div></nav>
+
+<main class="wrap">
+  <div class="crumb">홈 › 습득물 관리 › 습득물 등록</div>
+  <h1>습득물 등록</h1>
+  <div class="notice">
+    사진과 신고서를 넣으면 에이전트가 물품 유형별 템플릿에 맞춰 공고 초안을 만듭니다.<br>
+    ※ 매칭에 필요한 특징은 <b>공개</b>, 주인만 아는 특징은 <b>본인확인용</b>, 이름·번호 같은 식별 정보는 <b>비공개</b>로 나뉩니다. 습득자명은 공고에 올라가지 않습니다.
+  </div>
+
+  <form id="form" class="box">
+    <div class="grid">
+      <label>습득일자 <span class="req">*</span></label><input type="date" name="date" required>
+      <label>습득자명 <span class="req">*</span></label><input name="finder_name" placeholder="습득자 이름 (공고 비공개)" required>
+      <label>습득장소 <span class="req">*</span></label><input class="full" name="place" placeholder="예) 2호선 강남역 3번 출구" required>
+      <label>사진</label>
+      <div class="full">
+        <input type="file" name="photo" accept="image/*">
+        <div class="vlm" style="margin-top:8px">사진 판독(VLM) 준비 중 — 지금은 사진을 저장만 하고, 아래 메모를 근거로 특징을 뽑습니다.</div>
+      </div>
+      <label>특징 메모</label>
+      <div class="full">
+        <textarea name="memo" placeholder="눈에 보이는 특징을 자유롭게 적어 주세요. 예) 검정 장우산, 손잡이 나무, 끝에 노란 스티커"></textarea>
+        <div class="hint">사진 판독이 붙으면 이 칸은 선택 입력이 됩니다.</div>
+      </div>
+    </div>
+    <div class="btns"><button type="reset">초기화</button><button class="primary" id="submit">공고 초안 만들기</button></div>
+  </form>
+
+  <section id="result" hidden>
+    <h2>공고 초안</h2>
+    <div class="path" id="path"></div>
+    <div id="problems"></div>
+    <div class="cols">
+      <div class="card pub"><h3>공개</h3><div class="sub">공고·자동 매칭에 사용</div><dl id="pub"></dl></div>
+      <div class="card ver"><h3>본인확인용</h3><div class="sub">공고에 올리지 않고 수령 시 질문으로 사용</div><dl id="ver"></dl></div>
+      <div class="card pri"><h3>비공개</h3><div class="sub">저장·공개하지 않는 식별 정보</div><dl id="pri"></dl></div>
+    </div>
+    <div class="btns"><button id="reject">거절</button><button class="primary" id="approve">승인하고 게시</button></div>
+  </section>
+
+  <section id="posted">
+    <h2>등록된 공고</h2>
+    <div class="list" id="list"><p class="empty">아직 게시된 공고가 없습니다.</p></div>
+  </section>
+</main>
+<footer><div class="wrap">습득물 공고 표준화 멀티에이전트 PoC · LangGraph + MCP</div></footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rows = (obj) => Object.entries(obj).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("") || '<dd class="empty">없음</dd>';
+let threadId = null;
+document.querySelector("[name=date]").value = new Date().toLocaleDateString("sv-SE");   // 로컬(한국) 날짜 YYYY-MM-DD
+
+$("form").onsubmit = async (e) => {
+  e.preventDefault();
+  $("submit").disabled = true; $("submit").textContent = "에이전트 작업 중…";
+  try {
+    const res = await fetch("/api/draft", { method: "POST", body: new FormData(e.target) });
+    if (!res.ok) throw new Error(await res.text());
+    const d = await res.json();
+    threadId = d.thread_id;
+    $("path").innerHTML = d.path.map((p) => `<span>${esc(p)}</span>`).join(" → ") + ` <small>(재추출 ${d.tries}회)</small>`;
+    $("problems").innerHTML = d.problems.length ? `<div class="warn">검증에서 해결되지 않은 문제: ${d.problems.map(esc).join(" / ")}</div>` : "";
+    $("pub").innerHTML = `<dt>분류</dt><dd>${esc(d.draft.notice.category)}</dd><dt>물품명</dt><dd>${esc(d.draft.notice.item_name)}</dd>` + rows(d.draft.public);
+    $("ver").innerHTML = rows(d.draft.verify);
+    $("pri").innerHTML = rows(Object.fromEntries(["습득자명", ...d.draft.private].map((k) => [k, "가림"])));
+    $("result").hidden = false; $("result").scrollIntoView({ behavior: "smooth" });
+  } catch (err) { alert("초안 생성 실패: " + err.message); }
+  $("submit").disabled = false; $("submit").textContent = "공고 초안 만들기";
+};
+
+async function decide(decision) {
+  const res = await fetch("/api/approve", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ thread_id: threadId, decision }) });
+  const d = await res.json();
+  $("result").hidden = true;
+  if (d.status !== "published") return alert("담당자가 거절해 게시하지 않았습니다.");
+  const n = (await (await fetch(`/api/notices/${d.notice_id}`)).json()).data;   // MCP Resource로 다시 읽기
+  const empty = $("list").querySelector(".empty"); if (empty) empty.remove();
+  $("list").insertAdjacentHTML("afterbegin", `<div class="item"><div class="ph">이미지 준비중</div>
+    <b>${esc(n.item_name)}</b><small>${esc(n.notice_id)} · ${esc(n.category)} · 습득일자 ${esc(n.date)}<br>${esc(n.place)}</small>
+    <dl style="margin-top:8px;font-size:14px">${rows(n.features)}</dl></div>`);
+  $("posted").scrollIntoView({ behavior: "smooth" });
+}
+$("approve").onclick = () => decide("승인");
+$("reject").onclick = () => decide("거절");
+</script>
+</body>
+</html>
