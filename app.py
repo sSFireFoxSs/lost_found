@@ -19,7 +19,7 @@ UPLOADS = Path("uploads")
 
 
 def wait_ready(url, seconds=15):
-    """서버가 응답할 때까지 0.1초마다 확인한다 (수업 3-2절)."""
+    """서버가 응답할 때까지 0.1초마다 확인한다."""
     for _ in range(seconds * 10):
         try:
             return httpx.get(url)

@@ -15,7 +15,7 @@ def request(job):
         async with Client(MCP_URL) as client:
             return await job(client)
 
-    with ThreadPoolExecutor(max_workers=1) as pool:
+    with ThreadPoolExecutor(max_workers=1) as pool: # FastAPI 혹은 LangGraph에서 비동기가 돌 수 있을수 있는데 또 부르면 에러 날 수 있음. 그래서 새 일꾼 부름
         return pool.submit(asyncio.run, connect_and_run()).result()
 
 
@@ -42,8 +42,8 @@ ALLOWED = {
 }
 
 
-def is_allowed(caller: str, tool: str) -> bool:
-    return tool in ALLOWED.get(caller, set())
+def is_allowed(caller: str, tool: str) -> bool: # 담당자가 승인해야만 올라가는 부분을 코드로 막음
+    return tool in ALLOWED.get(caller, set()) # is_allowed("approval", "publish_notice") 만 허용
 
 
 def read_resource(uri: str) -> dict:
