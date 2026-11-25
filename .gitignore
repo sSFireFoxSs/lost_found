@@ -13,3 +13,14 @@ uploads/
 # Node
 node_modules/
 dist/
+
+# MD
+DECISIONS.md
+CLAUDE.md
+ARCHITECTURE.md
+
+# OCR · 모델 (용량이 커서 깃에 안 올림)
+*.pt
+*.pth
+data/
+runs/

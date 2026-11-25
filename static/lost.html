@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>분실물 확인 | 경찰민원24 (제안 시안)</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main class="inner">
+  <div id="crumb"></div>
+  <div class="page-title-wrap"><h1 class="h-tit">분실물 확인<span class="tag-proposal">제안</span></h1></div>
+  <div id="tabs"></div>
+
+  <div class="txt-box">
+    <p>내가 신고한 분실물과, 자동 매칭으로 찾은 습득물 후보를 확인하실 수 있습니다.</p>
+    <hr>
+    <span class="text-primary">※ 후보는 공고의 공개 특징으로만 찾습니다. 물건을 받으러 가시면 나만 아는 특징으로 본인 확인을 합니다.</span>
+  </div>
+
+  <form id="form" class="form-area">
+    <div class="form-head">검색 필터</div>
+    <div class="form-body"><div class="form-grid">
+      <label>물품 분류</label><div class="pair"><select id="main"></select><select id="sub"></select></div>
+      <label>분실일자</label><div class="pair"><input type="date" name="from"><span>~</span><input type="date" name="to"></div>
+      <label>분실물명</label><input name="item" placeholder="분실물명을 입력해주세요.">
+      <label>분실자명</label><input name="name" placeholder="이름을 입력해주세요">
+    </div>
+    <div class="btn-wrap"><button type="reset" class="krds-btn">초기화</button><button class="krds-btn primary">검색하기</button></div>
+    </div>
+  </form>
+
+  <h2 class="sec-tit">내 분실 신고</h2>
+  <table class="tbl">
+    <thead><tr><th style="width:120px">신고일</th><th>분실물</th><th>분류</th><th>분실장소</th><th style="width:120px">상태</th></tr></thead>
+    <tbody>
+      <tr><td>2026-11-24</td><td>남색 장우산 <span class="sample">예시</span></td><td>기타물품 &gt; 기타</td><td>2호선 강남역</td><td><span class="badge b-waiting_approval">후보 2건</span></td></tr>
+      <tr><td>2026-11-23</td><td>파란색 아이폰 15 <span class="sample">예시</span></td><td>휴대폰 &gt; 아이폰</td><td>김포공항</td><td><span class="badge b-queued">찾는 중</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="list-top"><span>매칭된 습득물 후보 <em>2</em>건 <small style="font-weight:400;color:var(--sub)">(남색 장우산)</small></span><span>목록 표시 개수 10개</span></div>
+  <ul class="items">
+    <li class="item"><div class="img-ready sm">이미지 준비중입니다.</div>
+      <div class="body">
+        <div class="title">남색 장우산<span class="sample">예시</span></div>
+        <div><span class="key">분류</span>기타물품 &gt; 기타</div><div><span class="key">습득 장소</span>2호선 강남역 3번 출구</div>
+        <div><span class="key">습득 일자</span>2026-11-24</div><div><span class="key">공개 특징</span>남색 · 장우산 · 나무 손잡이</div>
+      </div>
+      <div class="side" style="flex-direction:column;align-items:flex-end;justify-content:space-between"><a class="more" href="/notice.html" style="text-decoration:none">자세히 보기</a><button class="more" type="button">본인 확인 요청</button></div></li>
+    <li class="item"><div class="img-ready sm">이미지 준비중입니다.</div>
+      <div class="body">
+        <div class="title">검정 장우산<span class="sample">예시</span></div>
+        <div><span class="key">분류</span>기타물품 &gt; 기타</div><div><span class="key">습득 장소</span>2호선 역삼역</div>
+        <div><span class="key">습득 일자</span>2026-11-24</div><div><span class="key">공개 특징</span>검정 · 장우산</div>
+      </div>
+      <div class="side" style="flex-direction:column;align-items:flex-end;justify-content:space-between"><a class="more" href="/notice.html" style="text-decoration:none">자세히 보기</a><button class="more" type="button">본인 확인 요청</button></div></li>
+  </ul>
+</main>
+
+<script src="/common.js"></script>
+<script>
+// UI만: 조회·매칭·본인 확인은 다음 단계에서 붙인다 (지금 목록은 예시)
+fillCategories($("main"), $("sub"));
+$("form").onsubmit = (e) => { e.preventDefault(); alert("조회 기능은 준비 중입니다. (화면만 있는 상태)"); };
+document.querySelectorAll(".item .more").forEach((b) => b.onclick = () => alert("본인 확인 기능은 준비 중입니다."));
+</script>
+</body>
+</html>

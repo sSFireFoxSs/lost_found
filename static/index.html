@@ -3,151 +3,175 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>습득물 등록 | 습득물 공고 표준화 PoC</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-<style>
-  :root { --blue:#0054a6; --navy:#052b57; --ink:#1e2124; --gray:#f4f5f6; --line:#cdd1d5; --muted:#6d7882; }
-  * { box-sizing:border-box; }
-  html { color-scheme:light; background:#fff; }
-  body { margin:0;font-family:Pretendard, sans-serif; color:var(--ink); font-size:16px; }
-  .wrap { max-width:1200px; margin:0 auto; padding:0 20px; }
-  .masthead { background:#f4f5f6; font-size:13px; padding:6px 0; color:var(--muted); }
-  header { border-bottom:1px solid var(--line); }
-  header .wrap { display:flex; align-items:center; justify-content:space-between; height:72px; }
-  .logo { font-size:22px; font-weight:700; color:var(--navy); }
-  .logo b { color:var(--blue); }
-  nav { border-bottom:1px solid var(--line); }
-  nav .wrap { display:flex; gap:28px; height:52px; align-items:stretch; }
-  nav a { display:flex; align-items:center; font-weight:600; color:var(--ink); text-decoration:none; }
-  nav a.on { color:var(--navy); border-bottom:3px solid var(--navy); }
-  .crumb { font-size:14px; color:var(--muted); margin:24px 0 8px; }
-  h1 { color:var(--navy); font-size:34px; margin:8px 0 28px; }
-  h2 { font-size:24px; margin:40px 0 16px; }
-  .notice { background:#eef2f7; border:1px solid #d6e0eb; border-radius:12px; padding:18px 24px; color:var(--blue); font-size:15px; line-height:1.6; }
-  .box { background:var(--gray); border-radius:12px; padding:24px 32px; margin-top:16px; }
-  .grid { display:grid; grid-template-columns:110px 1fr 110px 1fr; gap:12px 16px; align-items:center; }
-  .grid label { font-weight:700; font-size:15px; }
-  .grid .full { grid-column:2 / 5; }
-  input, textarea { width:100%; font:inherit; font-size:15px; padding:9px 12px; border:1px solid #b1b8be; border-radius:6px; background:#fff; }
-  textarea { min-height:90px; resize:vertical; }
-  .req { color:#de3412; }
-  .hint { font-size:13px; color:var(--muted); margin-top:4px; }
-  .vlm { border:1px dashed #b1b8be; border-radius:6px; padding:10px 12px; background:#fff; color:var(--muted); font-size:14px; }
-  .btns { display:flex; justify-content:center; gap:8px; border-top:1px solid var(--ink); margin-top:20px; padding-top:14px; }
-  button { font:inherit; font-size:15px; padding:9px 18px; border-radius:6px; cursor:pointer; border:1px solid var(--line); background:#fff; }
-  button.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
-  button:disabled { opacity:.5; cursor:wait; }
-  .path { display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:14px; }
-  .path span { background:#fff; border:1px solid var(--line); border-radius:20px; padding:4px 12px; }
-  .cols { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-top:16px; }
-  .card { border:1px solid var(--line); border-radius:12px; padding:20px; background:#fff; }
-  .card h3 { margin:0 0 4px; font-size:18px; }
-  .card .sub { font-size:13px; color:var(--muted); margin-bottom:12px; }
-  .card.pub h3 { color:var(--blue); } .card.ver h3 { color:#8a5a00; } .card.pri h3 { color:#a1260d; }
-  dl { display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:0; font-size:15px; }
-  dt { font-weight:700; } dd { margin:0; }
-  .warn { background:#fdefec; color:#a1260d; border-radius:8px; padding:12px 16px; margin-top:12px; font-size:14px; }
-  .list { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; }
-  .item { border:1px solid var(--line); border-radius:12px; padding:16px; }
-  .ph { height:110px; background:#e6e8ea; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:13px; margin-bottom:12px; }
-  .item b { display:block; margin-bottom:8px; }
-  .item small { color:var(--muted); }
-  .empty { color:var(--muted); }
-  footer { background:var(--gray); margin-top:60px; padding:28px 0; font-size:14px; color:var(--muted); }
-  [hidden] { display:none !important; }
-</style>
+<title>습득물 등록 | 경찰민원24 (제안 시안)</title>
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<div class="masthead"><div class="wrap">PoC 데모 화면입니다. 실제 기관 서비스가 아닙니다.</div></div>
-<header><div class="wrap"><div class="logo">습득물 공고 <b>표준화</b></div><span style="color:var(--muted);font-size:14px">담당자용</span></div></header>
-<nav><div class="wrap"><a class="on" href="#">습득물 등록</a><a href="#posted">등록된 공고</a></div></nav>
+<main class="inner">
+  <div id="crumb"></div>
+  <div class="page-title-wrap"><h1 class="h-tit">습득물 등록<span class="tag-proposal">제안</span></h1></div>
+  <div id="tabs"></div>
 
-<main class="wrap">
-  <div class="crumb">홈 › 습득물 관리 › 습득물 등록</div>
-  <h1>습득물 등록</h1>
-  <div class="notice">
-    사진과 신고서를 넣으면 에이전트가 물품 유형별 템플릿에 맞춰 공고 초안을 만듭니다.<br>
-    ※ 매칭에 필요한 특징은 <b>공개</b>, 주인만 아는 특징은 <b>본인확인용</b>, 이름·번호 같은 식별 정보는 <b>비공개</b>로 나뉩니다. 습득자명은 공고에 올라가지 않습니다.
+  <div class="txt-box">
+    <p>습득물 정보를 입력하고 등록 버튼을 누르시면, 에이전트가 물품 유형별 기준에 맞춰 공고 초안을 만들어 드립니다. 처리되는 동안 다음 건을 계속 등록하실 수 있습니다.</p>
+    <hr>
+    <span class="text-primary">※ 매칭에 필요한 특징은 공개, 주인만 아는 특징은 본인확인용, 이름·번호 같은 식별 정보는 비공개로 나뉩니다. 습득자명은 공고에 올라가지 않습니다.</span>
   </div>
 
-  <form id="form" class="box">
-    <div class="grid">
-      <label>습득일자 <span class="req">*</span></label><input type="date" name="date" required>
-      <label>습득자명 <span class="req">*</span></label><input name="finder_name" placeholder="습득자 이름 (공고 비공개)" required>
-      <label>습득장소 <span class="req">*</span></label><input class="full" name="place" placeholder="예) 2호선 강남역 3번 출구" required>
+  <form id="form" class="form-area">
+    <div class="form-head">습득물 정보 입력</div>
+    <div class="form-body"><div class="form-grid">
+      <label>습득일자<span class="req">*</span></label><input type="date" name="date" required>
+      <label>습득자명<span class="req">*</span></label><input name="finder_name" placeholder="습득자 이름을 입력해주세요. (공고 비공개)" required>
+      <label>습득장소<span class="req">*</span></label><input class="full" name="place" placeholder="예) 2호선 강남역 3번 출구" required>
+      <label>물품 분류</label>
+      <div class="full">
+        <div class="pair"><select name="category_main" id="main"></select><select name="category_sub" id="sub"></select></div>
+        <div class="hint">모르면 비워 두세요. 에이전트가 고릅니다.</div>
+      </div>
+      <div class="div"></div>
       <label>사진</label>
       <div class="full">
-        <input type="file" name="photo" accept="image/*">
-        <div class="vlm" style="margin-top:8px">사진 판독(VLM) 준비 중 — 지금은 사진을 저장만 하고, 아래 메모를 근거로 특징을 뽑습니다.</div>
+        <input type="file" name="photo" accept=".jpg,.jpeg,.png,.webp,.gif">
+        <div class="vlm">사진을 올리면 에이전트가 사진을 판독해 특징을 뽑습니다. 메모와 체크 사항은 사진에 안 보이는 것을 보탤 때 쓰세요. (jpg·png·webp·gif, 10MB 이하)</div>
       </div>
       <label>특징 메모</label>
-      <div class="full">
-        <textarea name="memo" placeholder="눈에 보이는 특징을 자유롭게 적어 주세요. 예) 검정 장우산, 손잡이 나무, 끝에 노란 스티커"></textarea>
-        <div class="hint">사진 판독이 붙으면 이 칸은 선택 입력이 됩니다.</div>
-      </div>
+      <div class="full"><textarea name="memo" placeholder="눈에 보이는 특징을 자유롭게 입력해주세요. 예) 검정 장우산, 손잡이 나무, 끝에 노란 스티커"></textarea></div>
+      <label>체크 사항</label>
+      <div class="full checks" id="checks"></div>
     </div>
-    <div class="btns"><button type="reset">초기화</button><button class="primary" id="submit">공고 초안 만들기</button></div>
+    <div class="btn-wrap"><button type="reset" class="krds-btn">초기화</button><button class="krds-btn primary">등록하기</button></div>
+    <div id="toast"></div>
+    </div>
   </form>
 
-  <section id="result" hidden>
-    <h2>공고 초안</h2>
-    <div class="path" id="path"></div>
-    <div id="problems"></div>
-    <div class="cols">
-      <div class="card pub"><h3>공개</h3><div class="sub">공고·자동 매칭에 사용</div><dl id="pub"></dl></div>
-      <div class="card ver"><h3>본인확인용</h3><div class="sub">공고에 올리지 않고 수령 시 질문으로 사용</div><dl id="ver"></dl></div>
-      <div class="card pri"><h3>비공개</h3><div class="sub">저장·공개하지 않는 식별 정보</div><dl id="pri"></dl></div>
+  <div class="list-top"><span>총 <em id="count">0</em>건의 등록 작업</span><span>동시에 3건 처리 · 나머지는 순서대로 대기</span></div>
+  <table class="tbl">
+    <thead><tr><th style="width:90px">등록</th><th>물품</th><th>습득장소</th><th style="width:120px">상태</th><th style="width:110px"></th></tr></thead>
+    <tbody id="jobs"><tr><td colspan="5" class="empty">아직 등록한 건이 없습니다.</td></tr></tbody>
+  </table>
+
+  <section id="review" class="review" hidden>
+    <h3>공고 초안 검토 <small id="rv-title" style="font-size:16px;font-weight:400;color:var(--sub)"></small></h3>
+    <div class="path" id="rv-path"></div>
+    <div id="rv-photo"></div>
+    <div id="rv-problems"></div>
+    <div id="rv-tocheck"></div>
+    <div class="rows">
+      <span class="h">물품명</span><input id="rv-name" style="grid-column:2 / 4">
+      <span class="h">분류</span><span id="rv-cat" style="grid-column:2 / 4"></span>
     </div>
-    <div class="btns"><button id="reject">거절</button><button class="primary" id="approve">승인하고 게시</button></div>
+    <div class="rows" id="rv-rows"></div>
+    <p class="hint" id="rv-private"></p>
+    <label style="display:block;margin-top:20px;font-weight:700;font-size:16px">수정 요청 코멘트</label>
+    <textarea id="rv-comment" style="margin-top:8px" placeholder="에이전트에게 다시 맡길 때 입력해주세요. 예) 색상은 검정이 아니라 남색, 브랜드는 확인 불가로"></textarea>
+    <div class="btn-wrap">
+      <button class="krds-btn danger" data-act="폐기">폐기</button>
+      <button class="krds-btn" data-act="수정요청">수정 요청 (에이전트 재작업)</button>
+      <button class="krds-btn" data-act="수정후승인">수정한 대로 승인</button>
+      <button class="krds-btn primary" data-act="승인">승인하고 게시</button>
+    </div>
   </section>
 
-  <section id="posted">
-    <h2>등록된 공고</h2>
-    <div class="list" id="list"><p class="empty">아직 게시된 공고가 없습니다.</p></div>
-  </section>
+  <h2 class="sec-tit">최근 등록된 습득물</h2>
+  <div class="cards" id="list"><p class="empty">아직 게시된 공고가 없습니다.</p></div>
 </main>
-<footer><div class="wrap">습득물 공고 표준화 멀티에이전트 PoC · LangGraph + MCP</div></footer>
 
+<script src="/common.js"></script>
 <script>
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const rows = (obj) => Object.entries(obj).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("") || '<dd class="empty">없음</dd>';
-let threadId = null;
-document.querySelector("[name=date]").value = new Date().toLocaleDateString("sv-SE");   // 로컬(한국) 날짜 YYYY-MM-DD
+const STATUS = { queued: "대기 중", running: "처리 중", waiting_approval: "승인 대기", published: "게시됨", discarded: "폐기", failed: "실패" };
+let jobsById = {}, reviewing = null;
+const shown = new Set();                           // 이미 카드로 그린 공고 번호
+
+// ---- 등록: 바로 응답받고 다음 건 입력 ----
+fillCategories($("main"), $("sub")).then((checks) => {
+  $("checks").innerHTML = checks.map((c) => `<label><input type="checkbox" name="checks" value="${esc(c)}">${esc(c)}</label>`).join("");
+});
+const resetDate = () => { document.querySelector("[name=date]").value = today(); };
+resetDate();
+$("form").onreset = () => setTimeout(resetDate);
 
 $("form").onsubmit = async (e) => {
   e.preventDefault();
-  $("submit").disabled = true; $("submit").textContent = "에이전트 작업 중…";
-  try {
-    const res = await fetch("/api/draft", { method: "POST", body: new FormData(e.target) });
-    if (!res.ok) throw new Error(await res.text());
-    const d = await res.json();
-    threadId = d.thread_id;
-    $("path").innerHTML = d.path.map((p) => `<span>${esc(p)}</span>`).join(" → ") + ` <small>(재추출 ${d.tries}회)</small>`;
-    $("problems").innerHTML = d.problems.length ? `<div class="warn">검증에서 해결되지 않은 문제: ${d.problems.map(esc).join(" / ")}</div>` : "";
-    $("pub").innerHTML = `<dt>분류</dt><dd>${esc(d.draft.notice.category)}</dd><dt>물품명</dt><dd>${esc(d.draft.notice.item_name)}</dd>` + rows(d.draft.public);
-    $("ver").innerHTML = rows(d.draft.verify);
-    $("pri").innerHTML = rows(Object.fromEntries(["습득자명", ...d.draft.private].map((k) => [k, "가림"])));
-    $("result").hidden = false; $("result").scrollIntoView({ behavior: "smooth" });
-  } catch (err) { alert("초안 생성 실패: " + err.message); }
-  $("submit").disabled = false; $("submit").textContent = "공고 초안 만들기";
+  const res = await fetch("/api/drafts", { method: "POST", body: new FormData(e.target) });
+  const body = await res.json();
+  $("toast").className = "toast " + (res.ok ? "ok" : "err");
+  $("toast").textContent = res.ok ? "대기열에 넣었습니다. 다음 건을 등록하세요." : body.detail;
+  if (res.ok) { e.target.reset(); refresh(); }
 };
 
-async function decide(decision) {
-  const res = await fetch("/api/approve", { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ thread_id: threadId, decision }) });
-  const d = await res.json();
-  $("result").hidden = true;
-  if (d.status !== "published") return alert("담당자가 거절해 게시하지 않았습니다.");
-  const n = (await (await fetch(`/api/notices/${d.notice_id}`)).json()).data;   // MCP Resource로 다시 읽기
-  const empty = $("list").querySelector(".empty"); if (empty) empty.remove();
-  $("list").insertAdjacentHTML("afterbegin", `<div class="item"><div class="ph">이미지 준비중</div>
-    <b>${esc(n.item_name)}</b><small>${esc(n.notice_id)} · ${esc(n.category)} · 습득일자 ${esc(n.date)}<br>${esc(n.place)}</small>
-    <dl style="margin-top:8px;font-size:14px">${rows(n.features)}</dl></div>`);
-  $("posted").scrollIntoView({ behavior: "smooth" });
+// ---- 작업 목록: 2초마다 상태 갱신 ----
+async function refresh() {
+  const jobs = await (await fetch("/api/drafts")).json();
+  jobsById = Object.fromEntries(jobs.map((j) => [j.thread_id, j]));
+  $("count").textContent = jobs.length;
+  if (!jobs.length) return;
+  $("jobs").innerHTML = jobs.map((j) => {
+    const time = new Date(j.created * 1000).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    const name = j.draft?.notice?.item_name || j.item?.item_name || j.title;
+    const act = j.status === "waiting_approval" ? `<button class="krds-btn primary" onclick="openReview('${j.thread_id}')">검토</button>`
+      : j.status === "failed" ? `<span class="hint" title="${esc(j.error)}">오류 보기</span>` : "";
+    return `<tr><td>${time}</td><td>${esc(name)}</td><td>${esc(j.place)}</td>
+      <td><span class="badge b-${j.status}">${STATUS[j.status] || j.status}</span></td><td>${act}</td></tr>`;
+  }).join("");
+  if (reviewing && jobsById[reviewing]?.status !== "waiting_approval") closeReview();
+  jobs.filter((j) => j.status === "published" && !shown.has(j.notice_id)).forEach(addCard);
 }
-$("approve").onclick = () => decide("승인");
-$("reject").onclick = () => decide("거절");
+setInterval(refresh, 2000);
+refresh();
+
+// ---- 검토: 담당자 4가지 결정 ----
+function openReview(id) {
+  const j = jobsById[id], d = j.draft;
+  reviewing = id;
+  $("rv-title").textContent = j.place;
+  $("rv-path").innerHTML = (j.path || []).map((p) => `<span>${esc(p)}</span>`).join(" → ") + (j.revisions ? ` <small>(수정 요청 ${j.revisions}회)</small>` : "");
+  $("rv-photo").innerHTML = j.photo_desc ? `<div class="tip"><b>사진 판독 결과</b><p style="margin:6px 0 0">${esc(j.photo_desc)}</p></div>` : "";
+  $("rv-problems").innerHTML = j.problems?.length ? `<div class="warn"><b>검증에서 해결되지 않은 문제</b><ul>${j.problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>` : "";
+  $("rv-tocheck").innerHTML = j.to_check?.length ? `<div class="tip"><b>에이전트가 제안한 확인할 점</b><ul>${j.to_check.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>` : "";
+  $("rv-name").value = d.notice.item_name;
+  $("rv-cat").textContent = [d.notice.category, d.notice.sub_category].filter(Boolean).join(" > ");
+  const row = (k, v, lv) => `<input value="${esc(k)}" data-k><input value="${esc(v)}" data-v>
+    <select data-lv><option ${lv === "공개" ? "selected" : ""}>공개</option><option ${lv === "본인확인용" ? "selected" : ""}>본인확인용</option><option>삭제</option></select>`;
+  $("rv-rows").innerHTML = '<span class="h">항목</span><span class="h">값</span><span class="h">공개 범위</span>' +
+    Object.entries(d.public).map(([k, v]) => row(k, v, "공개")).join("") +
+    Object.entries(d.verify).map(([k, v]) => row(k, v, "본인확인용")).join("");
+  $("rv-private").textContent = "비공개(저장·공개 안 함): " + ["습득자명", ...d.private].join(", ");
+  $("rv-comment").value = "";
+  $("review").hidden = false;
+  $("review").scrollIntoView({ behavior: "smooth" });
+}
+function closeReview() { reviewing = null; $("review").hidden = true; }
+
+document.querySelectorAll("#review [data-act]").forEach((b) => b.onclick = async () => {
+  const body = { action: b.dataset.act, item_name: $("rv-name").value, comment: $("rv-comment").value, public: {}, verify: {} };
+  const ks = $("rv-rows").querySelectorAll("[data-k]"), vs = $("rv-rows").querySelectorAll("[data-v]"), ls = $("rv-rows").querySelectorAll("[data-lv]");
+  ks.forEach((k, i) => {
+    if (!k.value.trim() || ls[i].value === "삭제") return;
+    body[ls[i].value === "공개" ? "public" : "verify"][k.value.trim()] = vs[i].value;
+  });
+  if (body.action === "수정요청" && !body.comment.trim()) return alert("수정 요청 코멘트를 입력해주세요.");
+  if (body.action === "폐기" && !confirm("이 건을 게시하지 않고 끝낼까요?")) return;
+  const res = await fetch(`/api/drafts/${reviewing}/decision`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) return alert((await res.json()).detail);
+  closeReview();
+  refresh();
+});
+
+// ---- 최근 등록된 습득물: MCP Resource로 다시 읽어 카드로 (경찰민원24 카드 모양) ----
+async function addCard(j) {
+  shown.add(j.notice_id);
+  const n = (await (await fetch(`/api/notices/${j.notice_id}`)).json()).data;
+  $("list").querySelector(".empty")?.remove();
+  const feats = Object.entries(n.features || {}).map(([k, v]) => `${esc(k)} ${esc(v)}`).join(" · ");
+  $("list").insertAdjacentHTML("afterbegin", `<div class="card"><div class="img-ready">이미지 준비중입니다.</div>
+    <div class="card-tit">${esc(n.item_name)}</div>
+    <div class="kv"><strong>분류</strong><span>${esc([n.category, n.sub_category].filter(Boolean).join(" > "))}</span></div>
+    <div class="kv" style="border:0;padding:8px 0 0"><strong>습득일자</strong><span>${esc(n.date)}</span></div>
+    <div class="kv"><strong>습득장소</strong><span>${esc(n.place)}</span></div>
+    <p class="hint">${feats}</p>
+    <a class="more" href="/notice.html?id=${encodeURIComponent(n.notice_id)}" style="text-decoration:none">자세히 보기</a></div>`);
+}
 </script>
 </body>
 </html>
