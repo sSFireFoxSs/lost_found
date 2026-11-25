@@ -1,4 +1,4 @@
-"""모델 없이 확인하는 코드 규칙. 실행(프로젝트 루트에서): .venv/bin/python -m tests.test_rules"""
+"""모델 없이 확인하는 코드 규칙. 실행(프로젝트 루트에서): .venv/bin/python -m tests.test_rules""" #test
 from agents.graph import after_approval, after_verification
 from agents.nodes import build_draft
 from mcp_server.client import is_allowed, mask
