@@ -11,7 +11,8 @@ from langchain_openai import ChatOpenAI
 from langgraph.types import interrupt
 from pydantic import BaseModel, Field
 
-from agents.categories import ALWAYS_PRIVATE, CATEGORIES, template_for
+from agents.categories import (ALWAYS_PRIVATE, ALWAYS_VERIFY, CATEGORIES, COLORS, MODEL_CATEGORIES, NAME_EXAMPLES,
+                               handover_for, notice_text, template_for)
 from agents.state import handoff
 from mcp_server.client import call_tool, mask
 
@@ -26,7 +27,10 @@ UNKNOWN = "확인 불가"
 # ---- 사진 판독 (VLM): 같은 모델·같은 API 키에 이미지를 함께 보낸다 ----
 VLM_PROMPT = ("습득물 사진 판독 담당입니다. 사진에 실제로 보이는 것만 짧은 문장으로 적으세요: "
               "물품 종류, 색상, 브랜드·로고, 재질·형태, 크기 짐작, 흠집·스티커·글자 같은 특이점. "
-              "보이지 않는 것은 짐작하지 마세요. 사람 이름·카드번호 같은 글자가 보이면 '식별 정보 있음'이라고만 쓰세요.")
+              "보이지 않는 것은 짐작하지 마세요. 사람 이름·카드번호 같은 글자가 보이면 '식별 정보 있음'이라고만 쓰세요.\n"
+              "전자기기(휴대폰·이어폰·헤드폰·태블릿·노트북·시계·카메라 등)는 색·재질로만 설명하지 말고, "
+              "디자인 특징(이어컵·헤드밴드 모양, 카메라 배치, 버튼·크라운, 로고)으로 제조사와 정확한 모델명을 최대한 특정하세요. "
+              "형식: '모델 추정: 제조사 모델명 (근거: ...)'. 확신이 없으면 후보 1~2개와 근거를 쓰세요.")
 
 
 def describe_photo(photo_path: str | None) -> str:
@@ -59,19 +63,23 @@ def source_text(state) -> str:
 # ---- ① Registration Agent: 정보 최대 확보 ----
 class Feature(BaseModel):
     name: str = Field(description="템플릿 항목 이름")
-    value: str = Field(description=f"근거가 있는 값. 근거가 없으면 '{UNKNOWN}'")
+    value: str = Field(description=f"근거가 있는 값을 짧게(단어 위주, 20자 안쪽). 다른 항목과 겹치는 말은 쓰지 않음. 근거가 없으면 '{UNKNOWN}'")
+
 
 
 class Extract(BaseModel):
     category: Literal[tuple(CATEGORIES)] = Field(description="대분류")
     sub_category: str = Field(description="대분류에 속한 소분류. 모르면 빈 문자열")
-    item_name: str = Field(description="짧은 물품명 (예: 검정 장우산)")
+    item_name: str = Field(description=f"'[브랜드·모델] [종류]' 모양의 짧은 물품명. 색상은 넣지 않음. 예: {NAME_EXAMPLES}")
+    color: Literal[tuple(COLORS)] = Field(description="물품의 대표 색 하나. 목록에서만 고름")
     features: list[Feature]
 
 
 REG_PROMPT = ("습득물 등록 담당입니다. 아래 자료에 적힌 내용만 근거로 물품 분류와 특징을 뽑으세요. "
               "담당자가 고른 분류가 있으면 그대로 쓰고, 담당자 수정 요청이 있으면 메모보다 우선하세요. "
               f"분류별 템플릿 항목을 모두 채우고, 근거가 없는 항목은 '{UNKNOWN}'로 쓰세요. 지어내지 마세요.\n"
+              f"{sorted(MODEL_CATEGORIES)}는 사진 판독의 '모델 추정'을 모델명에 쓰고, 물품명도 '제조사 모델명 종류'로 쓰세요 "
+              "(예: 애플 에어팟 맥스 헤드폰). 색·재질만으로 이름 짓지 마세요.\n"
               f"분류(대분류: 소분류): {CATEGORIES}\n"
               f"템플릿: { {c: template_for(c) for c in CATEGORIES} }")
 reg_llm = llm.with_structured_output(Extract, method="function_calling")
@@ -92,7 +100,7 @@ def registration(state):
         sub = ""
     got = {f.name: f.value for f in r.features}
     features = {k: got.get(k) or UNKNOWN for k in template_for(category)}   # 템플릿 항목은 코드로 보장
-    item = {"category": category, "sub_category": sub, "item_name": r.item_name, "features": features}
+    item = {"category": category, "sub_category": sub, "item_name": r.item_name, "color": r.color, "features": features}
     return {"item": item, "photo_desc": state["photo_desc"],
             "handoffs": [handoff("registration_agent", "verification_agent", "추출 결과 검증")]}
 
@@ -107,6 +115,8 @@ class Check(BaseModel):
 
 VER_PROMPT = (f"습득물 검증 담당입니다. 추출 결과의 각 값이 자료에 근거가 있는지 확인하세요. "
               f"'{UNKNOWN}'은 문제가 아닙니다. 자료에 없는 값을 지어냈거나 분류가 틀렸으면 problems에 적으세요. "
+              "사진 판독의 '모델 추정'과 그로부터 정한 제조사·모델명·물품명은 근거가 있는 값으로 인정하고(problems 아님), "
+              "대신 to_check에 실물 확인을 요청하세요. 담당자가 분류를 고르지 않은 것도 문제가 아닙니다. "
               f"'{UNKNOWN}'으로 남은 중요한 항목은 담당자가 확인할 점(to_check)으로 적으세요.")
 ver_llm = llm.with_structured_output(Check, method="function_calling")
 
@@ -114,10 +124,13 @@ ver_llm = llm.with_structured_output(Check, method="function_calling")
 def verification(state):
     c = ver_llm.invoke([SystemMessage(VER_PROMPT),
                         HumanMessage(f"[자료]\n{source_text(state)}\n\n[추출 결과]\n{state['item']}")])
+    to_check = c.to_check
+    if state["item"]["features"].get("모델명") == UNKNOWN:      # 전자기기 모델명은 매칭 핵심이라 코드로 확인 요청
+        to_check = ["모델명 확인 (기기 뒷면 표기, 설정 화면, 각인 등)"] + to_check
     if c.ok:
-        return {"problems": [], "to_check": c.to_check,
+        return {"problems": [], "to_check": to_check,
                 "handoffs": [handoff("verification_agent", "privacy_agent", "공개 범위 판단")]}
-    return {"problems": c.problems, "to_check": c.to_check, "tries": state.get("tries", 0) + 1}
+    return {"problems": c.problems, "to_check": to_check, "tries": state.get("tries", 0) + 1}
 
 
 # ---- ③ Privacy Agent: 노출 최소화 ----
@@ -137,12 +150,31 @@ PRIV_PROMPT = ("습득물 공고의 공개 범위 담당입니다. 각 특징을
 priv_llm = llm.with_structured_output(Disclosure, method="function_calling")
 
 
+class Question(BaseModel):
+    question: str = Field(description="분실자에게 물을 질문. 답을 질문에 드러내지 않음 (예: '헤드밴드 안쪽은 어떤 소재인가요?')")
+    answer: str = Field(description="본인확인용 특징에서 가져온 맞는 답")
+
+
+class Questions(BaseModel):
+    questions: list[Question] = Field(description="최대 2개")
+
+
+Q_PROMPT = ("습득물 수령 창구 담당입니다. 아래 '본인확인용 특징'만 써서, 물건을 찾으러 온 사람에게 물을 질문을 최대 2개 만드세요. "
+            "공고에 공개된 내용(물품명·색상·공개 특징)으로는 맞힐 수 없어야 하고, 질문에 답이 드러나면 안 됩니다.")
+q_llm = llm.with_structured_output(Questions, method="function_calling")
+
+
 def privacy(state):
     features = {k: v for k, v in state["item"]["features"].items() if v != UNKNOWN}
     d = priv_llm.invoke([SystemMessage(PRIV_PROMPT), HumanMessage(str(features))])
     level = {x.name: x.level for x in d.levels}
-    return {"draft": build_draft(state["report"], state["item"], features, level),
-            "handoffs": [handoff("privacy_agent", "approval", "담당자 검토")]}
+    draft = build_draft(state["report"], state["item"], features, level)
+    if draft["verify"]:                           # 본인확인용 특징이 있어야 질문을 만들 수 있음
+        q = q_llm.invoke([SystemMessage(Q_PROMPT), HumanMessage(
+            f"공개된 내용: {draft['notice']['item_name']}, {draft['notice']['color']}, {draft['public']}\n"
+            f"본인확인용 특징: {draft['verify']}")])
+        draft["handover"]["questions"] = [x.model_dump() for x in q.questions[:2]]
+    return {"draft": draft, "handoffs": [handoff("privacy_agent", "approval", "담당자 검토")]}
 
 
 def build_draft(report, item, features, level):
@@ -150,15 +182,21 @@ def build_draft(report, item, features, level):
     draft = {"public": {}, "verify": {}, "private": []}
     for name, value in features.items():
         lv = "비공개" if name in ALWAYS_PRIVATE else level.get(name, "본인확인용")   # 판단 누락은 안전한 쪽으로
+        if name in ALWAYS_VERIFY and lv == "공개":     # 주인만 알 세부는 공개 금지 (모델·담당자 판단보다 우선)
+            lv = "본인확인용"
         if lv == "공개":
             draft["public"][name] = mask(value)
         elif lv == "본인확인용":
             draft["verify"][name] = mask(value)  # 자유 서술 안에 섞인 번호도 저장 전에 가림
         else:
             draft["private"].append(name)
+    name, color, org = mask(item["item_name"]), item.get("color") or COLORS[0], report.get("org") or "접수기관"
     draft["notice"] = {"category": item["category"], "sub_category": item.get("sub_category", ""),
-                       "item_name": mask(item["item_name"]),
-                       "date": report["date"], "place": report["place"], "features": draft["public"]}
+                       "item_name": name, "color": color, "date": report["date"], "place": report["place"],
+                       "org": org, "tel": report.get("tel", ""), "features": draft["public"],
+                       "content": notice_text(org, report["date"], name, color, draft["public"])}   # 문장은 코드가 틀에 끼워 만듦
+    draft["handover"] = {"methods": handover_for(item["category"]), "questions": []}   # 수령 시 본인 확인 (질문은 privacy가 채움)
+    draft["notice"]["prepare"] = draft["handover"]["methods"]   # 공고에는 확인 방법만 (질문·답은 공개하지 않음)
     return draft
 
 
@@ -167,9 +205,10 @@ MAX_REVISE = 2                                    # 담당자 수정 요청으�
 
 
 def approval(state):
+    r = state["report"]
     d = interrupt({"draft": state["draft"], "problems": state.get("problems", []),
                    "to_check": state.get("to_check", []), "revisions": state.get("revisions", 0),
-                   "photo_desc": state.get("photo_desc", "")})
+                   "photo_desc": state.get("photo_desc", ""), "memo": r.get("memo", ""), "checks": r.get("checks", [])})
     act = d["action"]
 
     if act == "승인":
@@ -178,8 +217,11 @@ def approval(state):
     if act == "수정후승인":                        # 담당자가 고친 값 → 모델 없이 코드 규칙만 적용
         features = {**d.get("public", {}), **d.get("verify", {})}
         level = {k: "공개" for k in d.get("public", {})} | {k: "본인확인용" for k in d.get("verify", {})}
-        item = {**state["item"], "item_name": d.get("item_name") or state["item"]["item_name"]}
-        return publish(build_draft(state["report"], item, features, level))
+        item = {**state["item"], "item_name": d.get("item_name") or state["item"]["item_name"],
+                "color": d.get("color") if d.get("color") in COLORS else state["item"].get("color")}
+        draft = build_draft(state["report"], item, features, level)
+        draft["handover"]["questions"] = state["draft"].get("handover", {}).get("questions", [])   # 모델 없이 → 앞서 만든 질문 유지
+        return publish(draft)
 
     if act == "수정요청":                          # 담당자 코멘트를 들고 처음(추출)부터 다시
         if state.get("revisions", 0) >= MAX_REVISE:
@@ -195,7 +237,8 @@ def approval(state):
 
 def publish(draft):
     """데이터를 바꾸는 Tool은 approval만 호출한다 (허용 목록)."""
-    result = call_tool("approval", "publish_notice", {"notice": draft["notice"], "verify_features": draft["verify"]})
+    result = call_tool("approval", "publish_notice", {"notice": draft["notice"],   # 공고에는 공개 정보만
+                                                        "verify_features": {"features": draft["verify"], "handover": draft["handover"]}})
     if not result["ok"]:
         raise RuntimeError(result["text"])
     return {"draft": draft, "status": "published", "notice_id": result["data"]["notice_id"]}

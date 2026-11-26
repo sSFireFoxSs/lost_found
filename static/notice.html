@@ -27,13 +27,14 @@
     </div>
 
     <div class="detail-body">
-      <h4>상세내용<span class="agent-label">에이전트 작성 (시안)</span></h4>
+      <h4>상세내용<span class="agent-label">표준 문구 + 공개 특징</span></h4>
       <p id="body"></p>
       <p class="note">※ 보관장소 방문 전, 담당자와 통화 후 방문해 주시기 바랍니다</p>
       <p class="note" style="margin-top:8px">※ 수령하실 때 공고에 적히지 않은 특징을 여쭈어 본인 확인을 합니다.</p>
+      <p class="note" style="margin-top:8px" id="prepare"></p>
       <div class="compare">
-        <div><b>현재 공고 문구 (경찰민원24 18건 모두 같은 형식)</b><span id="before"></span></div>
-        <div><b>제안: 공개 특징을 특이사항에 표준 형식으로 기재</b><span id="after"></span></div>
+        <div><b>현재 공고 문구 (경찰민원24 174건 중 94%가 특이사항 없음)</b><span id="before"></span></div>
+        <div><b>제안: 같은 문구 틀에 공개 특징을 특이사항으로 기재</b><span id="after"></span></div>
       </div>
     </div>
 
@@ -50,35 +51,32 @@
 
 <script src="/common.js"></script>
 <script>
-// UI 시안: 상세내용 문구는 지금 화면에서 표준 문구에 공개 특징을 끼워 넣어 보여 준다.
-// 에이전트가 직접 쓰는 기능은 다음 단계 (지금은 등록 화면에 기관·보관장소·연락처 입력이 없어 예시 값)
-const SAMPLE = { notice_id: "F-0000", item_name: "남색 장우산", category: "기타물품", sub_category: "기타", date: "2026-11-24",
-  place: "2호선 강남역 3번 출구", features: { "색상": "남색", "브랜드": "컨버스", "재질/형태": "장우산, 나무 손잡이" } };
-const ORG = "강남역(2호선)";   // 예시 접수기관
+// 상세내용·접수기관·색상은 등록 때 코드가 만든 값을 그대로 보여 준다 (agents/categories.py notice_text)
+const SAMPLE = { notice_id: "F-0000", item_name: "컨버스 장우산", color: "블루(파랑)색", category: "기타물품", sub_category: "기타",
+  date: "2026-11-24", place: "2호선 강남역 3번 출구", org: "강남역(2호선)", tel: "",
+  content: "강남역(2호선)에서는 [2026.11.24] [컨버스 장우산(블루(파랑)색)]을 습득/보관 하였습니다. 분실하신 분께서는 본인을 증명할 수 있는 서류를 지참하시어 보관중으로 기재되어 있는 기관에 방문하시어 보관물품을 수령하시기 바랍니다. 특이사항 : 재질/형태 장우산, 나무 손잡이" };
 
 function render(n, isSample) {
-  const d = n.date.replaceAll("-", ".");
-  const color = n.features["색상"] || "확인 불가";
-  const feats = Object.entries(n.features).filter(([k]) => k !== "색상").map(([k, v]) => `${k} ${v}`).join(" · ") || "없음";
-  const head = `${ORG}에서는 [${d}] [${n.item_name}(${color})]을 습득/보관 하였습니다. 분실하신 분께서는 본인을 증명할 수 있는 서류를 지참하시어 보관중으로 기재되어 있는 기관에 방문하시어 보관물품을 수령하시기 바랍니다.`;
+  const [head, special = ""] = n.content.split("특이사항 : ");
   document.title = `${n.item_name} | 분실물 상세 보기 (제안 시안)`;
   $("name").innerHTML = esc(n.item_name) + (isSample ? '<span class="sample">예시</span>' : "");
-  $("date").textContent = `${n.date}, 시각 입력 예정`;
+  $("date").textContent = n.date;
   $("place").textContent = n.place;
   $("cat").textContent = [n.category, n.sub_category].filter(Boolean).join(" > ");
-  $("body").textContent = `내용 ${head} 특이사항 : ${feats}`;
-  $("before").textContent = `… [${n.item_name}(${color})]을 습득/보관 하였습니다. … 특이사항 : 없음`;
-  $("after").innerHTML = `… [${esc(n.item_name)}(${esc(color)})]을 습득/보관 하였습니다. … 특이사항 : <mark>${esc(feats)}</mark>`;
-  $("org").textContent = ORG + " (예시)";
+  $("body").textContent = "내용 " + n.content;
+  $("before").textContent = `… [${n.item_name}(${n.color})]을 습득/보관 하였습니다. … 특이사항 : 없음`;
+  $("after").innerHTML = `… [${esc(n.item_name)}(${esc(n.color)})]을 습득/보관 하였습니다. … 특이사항 : <mark>${esc(special)}</mark>`;
+  $("org").textContent = n.org;
   $("mng").textContent = n.notice_id;
-  $("keep").textContent = ORG + " (예시)";
-  $("tel").textContent = "기관 정보 연동 예정";
+  $("keep").textContent = n.org;
+  $("tel").textContent = n.tel || "-";
+  $("prepare").textContent = n.prepare?.length ? "※ 방문 전 준비: " + n.prepare.join(" / ") : "";
 }
 
 const id = new URLSearchParams(location.search).get("id");
 if (!id) render(SAMPLE, true);
 else fetch(`/api/notices/${encodeURIComponent(id)}`).then((r) => r.json())
-  .then((res) => res.ok ? render(res.data, false) : render(SAMPLE, true));
+  .then((res) => res.ok && res.data.content ? render(res.data, false) : render(SAMPLE, true));   // 예전 형식 공고는 예시로
 </script>
 </body>
 </html>

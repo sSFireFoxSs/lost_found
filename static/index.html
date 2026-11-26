@@ -24,6 +24,8 @@
       <label>습득일자<span class="req">*</span></label><input type="date" name="date" required>
       <label>습득자명<span class="req">*</span></label><input name="finder_name" placeholder="습득자 이름을 입력해주세요. (공고 비공개)" required>
       <label>습득장소<span class="req">*</span></label><input class="full" name="place" placeholder="예) 2호선 강남역 3번 출구" required>
+      <label>접수기관<span class="req">*</span></label><input name="org" placeholder="예) 강남역(2호선), 역삼지구대" required>
+      <label>연락처</label><input name="tel" placeholder="보관장소 연락처 예) 02-6110-2221">
       <label>물품 분류</label>
       <div class="full">
         <div class="pair"><select name="category_main" id="main"></select><select name="category_sub" id="sub"></select></div>
@@ -32,8 +34,8 @@
       <div class="div"></div>
       <label>사진</label>
       <div class="full">
-        <input type="file" name="photo" accept=".jpg,.jpeg,.png,.webp,.gif">
-        <div class="vlm">사진을 올리면 에이전트가 사진을 판독해 특징을 뽑습니다. 메모와 체크 사항은 사진에 안 보이는 것을 보탤 때 쓰세요. (jpg·png·webp·gif, 10MB 이하)</div>
+        <input type="file" name="photo" accept=".jpg,.jpeg,.png,.webp,.gif,.heic,.heif">
+        <div class="vlm">사진을 올리면 에이전트가 사진을 판독해 특징을 뽑습니다. 메모와 체크 사항은 사진에 안 보이는 것을 보탤 때 쓰세요. (jpg·png·webp·gif·heic, 10MB 이하)</div>
       </div>
       <label>특징 메모</label>
       <div class="full"><textarea name="memo" placeholder="눈에 보이는 특징을 자유롭게 입력해주세요. 예) 검정 장우산, 손잡이 나무, 끝에 노란 스티커"></textarea></div>
@@ -45,7 +47,7 @@
     </div>
   </form>
 
-  <div class="list-top"><span>총 <em id="count">0</em>건의 등록 작업</span><span>동시에 3건 처리 · 나머지는 순서대로 대기</span></div>
+  <div class="list-top"><span>총 <em id="count">0</em>건의 등록 작업</span><span>여러 건을 동시에 처리하고 나머지는 순서대로 대기합니다</span></div>
   <table class="tbl">
     <thead><tr><th style="width:90px">등록</th><th>물품</th><th>습득장소</th><th style="width:120px">상태</th><th style="width:110px"></th></tr></thead>
     <tbody id="jobs"><tr><td colspan="5" class="empty">아직 등록한 건이 없습니다.</td></tr></tbody>
@@ -54,17 +56,30 @@
   <section id="review" class="review" hidden>
     <h3>공고 초안 검토 <small id="rv-title" style="font-size:16px;font-weight:400;color:var(--sub)"></small></h3>
     <div class="path" id="rv-path"></div>
-    <div id="rv-photo"></div>
-    <div id="rv-problems"></div>
-    <div id="rv-tocheck"></div>
+    <div class="draft-text"><h4>상세내용 초안 <span class="agent-label">표준 문구 + 공개 특징</span></h4><p id="rv-content"></p></div>
+    <div class="two-col">
+      <div class="pcard human"><h4>담당자가 입력한 것</h4><div class="sub">등록할 때 적은 메모·체크 사항과 사진 판독 결과</div><dl id="rv-human"></dl></div>
+      <div class="pcard agent"><h4>에이전트가 확인 요청한 것 <span class="chk-count" id="rv-count"></span></h4>
+        <div class="sub">실물을 보고 확인한 항목에 체크하세요. 고칠 게 있으면 아래 값을 바꾸거나 수정 요청하세요.</div><ul class="chk-list" id="rv-checks"></ul></div>
+    </div>
+    <div class="handover">
+      <h4>수령 시 본인 확인 <span class="agent-label">공고에 안 올라감</span></h4>
+      <div class="sub" style="font-size:14px;color:var(--sub)">분실자가 찾으러 왔을 때 이 순서로 확인하세요. 질문의 답은 공고에 없는 본인확인용 특징입니다.</div>
+      <div class="cols">
+        <div><h5>물어볼 질문</h5><ul class="qa" id="rv-questions"></ul></div>
+        <div><h5>확인 방법 (분류별 기준)</h5><ul class="chk-list" id="rv-methods"></ul></div>
+      </div>
+    </div>
     <div class="rows">
       <span class="h">물품명</span><input id="rv-name" style="grid-column:2 / 4">
+      <span class="h">색상</span><select id="rv-color" style="grid-column:2 / 4"></select>
       <span class="h">분류</span><span id="rv-cat" style="grid-column:2 / 4"></span>
     </div>
     <div class="rows" id="rv-rows"></div>
     <p class="hint" id="rv-private"></p>
     <label style="display:block;margin-top:20px;font-weight:700;font-size:16px">수정 요청 코멘트</label>
     <textarea id="rv-comment" style="margin-top:8px" placeholder="에이전트에게 다시 맡길 때 입력해주세요. 예) 색상은 검정이 아니라 남색, 브랜드는 확인 불가로"></textarea>
+    <div id="rv-msg"></div>
     <div class="btn-wrap">
       <button class="krds-btn danger" data-act="폐기">폐기</button>
       <button class="krds-btn" data-act="수정요청">수정 요청 (에이전트 재작업)</button>
@@ -80,11 +95,12 @@
 <script src="/common.js"></script>
 <script>
 const STATUS = { queued: "대기 중", running: "처리 중", waiting_approval: "승인 대기", published: "게시됨", discarded: "폐기", failed: "실패" };
-let jobsById = {}, reviewing = null;
+let jobsById = {}, reviewing = null, COLORS = [];
 const shown = new Set();                           // 이미 카드로 그린 공고 번호
 
 // ---- 등록: 바로 응답받고 다음 건 입력 ----
-fillCategories($("main"), $("sub")).then((checks) => {
+fillCategories($("main"), $("sub")).then(({ checks, colors }) => {
+  COLORS = colors;
   $("checks").innerHTML = checks.map((c) => `<label><input type="checkbox" name="checks" value="${esc(c)}">${esc(c)}</label>`).join("");
 });
 const resetDate = () => { document.querySelector("[name=date]").value = today(); };
@@ -124,12 +140,26 @@ refresh();
 function openReview(id) {
   const j = jobsById[id], d = j.draft;
   reviewing = id;
+  resetButtons();
   $("rv-title").textContent = j.place;
   $("rv-path").innerHTML = (j.path || []).map((p) => `<span>${esc(p)}</span>`).join(" → ") + (j.revisions ? ` <small>(수정 요청 ${j.revisions}회)</small>` : "");
-  $("rv-photo").innerHTML = j.photo_desc ? `<div class="tip"><b>사진 판독 결과</b><p style="margin:6px 0 0">${esc(j.photo_desc)}</p></div>` : "";
-  $("rv-problems").innerHTML = j.problems?.length ? `<div class="warn"><b>검증에서 해결되지 않은 문제</b><ul>${j.problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>` : "";
-  $("rv-tocheck").innerHTML = j.to_check?.length ? `<div class="tip"><b>에이전트가 제안한 확인할 점</b><ul>${j.to_check.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>` : "";
-  $("rv-name").value = d.notice.item_name;
+  const n = d.notice, special = n.content.split("특이사항 : ")[1] || "";
+  $("rv-content").innerHTML = esc(n.content.slice(0, n.content.length - special.length)) + `<mark>${esc(special)}</mark>`;
+  $("rv-human").innerHTML = `<dt>특징 메모</dt><dd>${esc(j.memo) || '<span class="hint">없음</span>'}</dd>
+    <dt>체크 사항</dt><dd>${j.checks?.length ? `<div class="chips">${j.checks.map((c) => `<span>${esc(c)}</span>`).join("")}</div>` : '<span class="hint">없음</span>'}</dd>
+    <dt>사진 판독</dt><dd>${esc(j.photo_desc) || '<span class="hint">사진 없음</span>'}</dd>`;
+  const items = [...(j.problems || []).map((p) => [p, true]), ...(j.to_check || []).map((p) => [p, false])];
+  $("rv-checks").innerHTML = items.length ? items.map(([p, bad]) => `<li><label class="${bad ? "bad" : ""}"><input type="checkbox"><span>${bad ? "<b>불일치</b> " : ""}${esc(p)}</span></label></li>`).join("")
+    : '<li class="hint">확인 요청 없음</li>';
+  const count = () => { $("rv-count").textContent = items.length ? `${$("rv-checks").querySelectorAll("input:checked").length} / ${items.length} 확인` : ""; };
+  $("rv-checks").onchange = count; count();
+  const ho = d.handover || { questions: [], methods: [] };
+  $("rv-questions").innerHTML = ho.questions.length ? ho.questions.map((q) =>
+    `<li>${esc(q.question)}<details><summary>답 보기</summary>${esc(q.answer)}</details></li>`).join("")
+    : '<li class="hint">본인확인용 특징이 없어 질문을 만들지 못했습니다. 실물에서 특징을 찾아 본인확인용으로 넣어 주세요.</li>';
+  $("rv-methods").innerHTML = ho.methods.map((m) => `<li><label><input type="checkbox"><span>${esc(m)}</span></label></li>`).join("");
+  $("rv-name").value = n.item_name;
+  $("rv-color").innerHTML = COLORS.map((c) => `<option ${c === n.color ? "selected" : ""}>${esc(c)}</option>`).join("");
   $("rv-cat").textContent = [d.notice.category, d.notice.sub_category].filter(Boolean).join(" > ");
   const row = (k, v, lv) => `<input value="${esc(k)}" data-k><input value="${esc(v)}" data-v>
     <select data-lv><option ${lv === "공개" ? "selected" : ""}>공개</option><option ${lv === "본인확인용" ? "selected" : ""}>본인확인용</option><option>삭제</option></select>`;
@@ -142,18 +172,28 @@ function openReview(id) {
   $("review").scrollIntoView({ behavior: "smooth" });
 }
 function closeReview() { reviewing = null; $("review").hidden = true; }
+const say = (msg) => { $("rv-msg").className = "toast err"; $("rv-msg").textContent = msg; };
+function resetButtons() {                          // 다른 건을 열면 폐기 버튼·안내를 처음 상태로
+  const b = document.querySelector('[data-act="폐기"]'); b.dataset.armed = ""; b.textContent = "폐기";
+  $("rv-msg").className = ""; $("rv-msg").textContent = "";
+}
 
 document.querySelectorAll("#review [data-act]").forEach((b) => b.onclick = async () => {
-  const body = { action: b.dataset.act, item_name: $("rv-name").value, comment: $("rv-comment").value, public: {}, verify: {} };
+  const body = { action: b.dataset.act, item_name: $("rv-name").value, color: $("rv-color").value, comment: $("rv-comment").value, public: {}, verify: {} };
   const ks = $("rv-rows").querySelectorAll("[data-k]"), vs = $("rv-rows").querySelectorAll("[data-v]"), ls = $("rv-rows").querySelectorAll("[data-lv]");
   ks.forEach((k, i) => {
     if (!k.value.trim() || ls[i].value === "삭제") return;
     body[ls[i].value === "공개" ? "public" : "verify"][k.value.trim()] = vs[i].value;
   });
-  if (body.action === "수정요청" && !body.comment.trim()) return alert("수정 요청 코멘트를 입력해주세요.");
-  if (body.action === "폐기" && !confirm("이 건을 게시하지 않고 끝낼까요?")) return;
+  // 브라우저 확인창(confirm·alert)은 막혀 있으면 바로 '취소'가 돼 아무 일도 안 일어나므로 화면 안에서 묻고 알린다
+  if (body.action === "수정요청" && !body.comment.trim()) return say("수정 요청 코멘트를 입력해주세요.");
+  if (body.action === "폐기" && b.dataset.armed !== "1") {      // 첫 클릭: 한 번 더 눌러야 폐기
+    b.dataset.armed = "1"; b.textContent = "한 번 더 누르면 폐기";
+    clearTimeout(b.timer); b.timer = setTimeout(() => { b.dataset.armed = ""; b.textContent = "폐기"; }, 4000);
+    return say("이 건은 게시하지 않고 끝납니다. 맞으면 4초 안에 한 번 더 눌러 주세요.");
+  }
   const res = await fetch(`/api/drafts/${reviewing}/decision`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  if (!res.ok) return alert((await res.json()).detail);
+  if (!res.ok) return say((await res.json()).detail);
   closeReview();
   refresh();
 });
@@ -166,6 +206,7 @@ async function addCard(j) {
   const feats = Object.entries(n.features || {}).map(([k, v]) => `${esc(k)} ${esc(v)}`).join(" · ");
   $("list").insertAdjacentHTML("afterbegin", `<div class="card"><div class="img-ready">이미지 준비중입니다.</div>
     <div class="card-tit">${esc(n.item_name)}</div>
+    <div class="kv" style="border:0;padding-bottom:0"><strong>색상</strong><span>${esc(n.color || "")}</span></div>
     <div class="kv"><strong>분류</strong><span>${esc([n.category, n.sub_category].filter(Boolean).join(" > "))}</span></div>
     <div class="kv" style="border:0;padding:8px 0 0"><strong>습득일자</strong><span>${esc(n.date)}</span></div>
     <div class="kv"><strong>습득장소</strong><span>${esc(n.place)}</span></div>
