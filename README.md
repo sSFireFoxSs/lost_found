@@ -17,6 +17,9 @@ uv pip install -r requirements.txt       # 처음 한 번
 - 브라우저에서 http://127.0.0.1:8000 (MCP 서버 8801은 웹 서버가 같이 켜고 끕니다)
 - 프로젝트 루트의 `.env` 또는 상위 폴더 `.env`에 `OPENAI_API_KEY` 필요. 모델은 `MCP_LAB_MODEL` (기본 `gpt-6-luna`)
 - 규칙 테스트(모델 없이): `.venv/bin/python -m tests.test_rules`
+- 등록한 데이터는 `data/`에 계속 쌓입니다 (서버를 다시 켜도 유지, git에는 안 올림)
+  - `data/jobs.json`: 등록 입력·사진 판독·초안·담당자 결정 이력 (개선용 데이터셋)
+  - `data/notices.json`: 게시된 공고 · `data/checkpoints.sqlite`: 그래프 중간 상태(SqliteSaver) · `uploads/`: 사진
 
 ## 화면
 
@@ -25,13 +28,13 @@ uv pip install -r requirements.txt       # 처음 한 번
 | `/` | 습득물 등록 · 작업 목록 · 초안 검토 · 최근 등록된 습득물 | 동작 |
 | `/lost_new.html` | 분실물 신고 | UI만 |
 | `/lost.html` | 분실물 확인 (내 신고, 매칭 후보) | UI만 (예시 데이터) |
-| `/notice.html?id=F-0001` | 상세 보기 (경찰민원24 "분실물 상세 보기" 모양). id 없으면 예시 | 공고 읽기는 동작, 상세내용 문구는 UI 시안 |
+| `/notice.html?id=F-0001` | 상세 보기 (경찰민원24 "분실물 상세 보기" 모양). id 없으면 예시 | 동작 (상세내용은 등록 때 표준 문구로 만든 것) |
 
 ## 폴더
 
 ```
 agents/        LangGraph 에이전트
-  categories.py  대분류·소분류(경찰민원24 기준), 유형별 템플릿, 체크 사항
+  categories.py  경찰민원24에서 수집한 정해진 값: 분류, 색상 코드, 상세내용 문구 틀, 물품명 예시, 유형별 템플릿
   state.py       NoticeState, handoff
   nodes.py       registration · verification · privacy · approval 노드
   graph.py       엣지 연결, graph 객체
@@ -50,6 +53,5 @@ tests/         모델 없이 도는 규칙 테스트
 
 ## 아직 안 된 것
 
-- 상세내용 문구를 에이전트가 쓰는 기능 (지금은 화면에서 표준 문구에 공개 특징을 끼워 넣어 보여 줌), 접수기관·보관장소·연락처·습득 시각 입력
+- 습득 시각, 유실물 상태(보관중·종결) 관리
 - 분실물 신고 저장, 분실물–습득물 매칭(노션 4-3), 본인 확인
-- 저장소: 작업·공고·체크포인트가 모두 메모리에 있어 서버를 다시 켜면 사라짐

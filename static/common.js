@@ -45,7 +45,8 @@ renderChrome();
 
 // 대분류·소분류 선택 상자 채우기 (분류는 서버 agents/categories.py 하나만 기준)
 async function fillCategories(mainSel, subSel) {
-  const { categories, checks } = await (await fetch("/api/categories")).json();
+  const data = await (await fetch("/api/categories")).json();
+  const { categories } = data;
   mainSel.innerHTML = '<option value="">대분류 선택</option>' +
     Object.keys(categories).map((c) => `<option>${esc(c)}</option>`).join("");
   const fillSub = () => {
@@ -54,5 +55,5 @@ async function fillCategories(mainSel, subSel) {
   };
   mainSel.onchange = fillSub;
   fillSub();
-  return checks;
+  return data;                                     // { categories, checks, colors }
 }
