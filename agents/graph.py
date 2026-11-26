@@ -6,7 +6,10 @@ registration → verification ─(불일치, 재시도 남음)→ registration
                                           ├ 수정요청 → registration (상한 넘으면 approval에서 다시 대기)
                                           └ 폐기 → END
 """
-from langgraph.checkpoint.memory import InMemorySaver
+import sqlite3
+from pathlib import Path
+
+from langgraph.checkpoint.sqlite import SqliteSaver   # pip: langgraph-checkpoint-sqlite
 from langgraph.graph import END, START, StateGraph
 
 from agents.nodes import approval, privacy, registration, verification
@@ -40,4 +43,9 @@ def assemble(checkpointer=None):
     return builder.compile(checkpointer=checkpointer)
 
 
-graph = assemble(InMemorySaver())                 # interrupt에는 checkpointer + thread_id가 필수
+# InMemorySaver는 재시작하면 사라짐 → SqliteSaver로 파일에 저장해 승인 대기 건도 서버를 다시 켜면 이어 감.
+# `with SqliteSaver.from_conn_string(...)`은 블록이 끝나면 닫히므로, 서버처럼 계속 켜 두는 곳에서는 연결을 직접 넘긴다.
+DB_PATH = Path("data/checkpoints.sqlite")
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+checkpointer = SqliteSaver(sqlite3.connect(DB_PATH, check_same_thread=False))   # 대기열 스레드 여러 개가 같이 씀
+graph = assemble(checkpointer)                    # interrupt에는 checkpointer + thread_id가 필수
