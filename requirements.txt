@@ -10,3 +10,7 @@ fastapi==0.165.0
 uvicorn==0.54.0
 python-multipart==0.0.34
 httpx==0.28.1
+
+# 카카오 분실물 접수 서버
+psycopg[binary]>=3.2,<4
+tzdata>=2025.2
